@@ -1,0 +1,109 @@
+package test;
+
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+
+public class ClientSocket extends JFrame implements ActionListener{
+	
+	static JTextArea jta = new JTextArea(15,25);     ///用于显示文本
+	JLabel jlname = new JLabel("用户名称");
+	JLabel jlmsg = new JLabel("发送信息");
+	JTextField jtfname = new JTextField("在此输入用户名：",20);
+	JTextField jtfmsg = new JTextField("在此输入信息",20);
+	
+	static Socket client = null;             ///用于发送消息
+	static BufferedWriter bw = null;
+	static BufferedReader br = null;
+	
+	public ClientSocket()
+	{
+		this.setTitle("客户机");
+		this.setLayout(new FlowLayout());
+		this.add(jta);
+		this.add(jlname);
+		this.add(jtfname);
+		this.add(jlmsg);
+		this.add(jtfmsg);
+		jtfmsg.addActionListener(this);
+		this.setSize(320,500);
+		this.setVisible(true);
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+		
+			try {
+				bw.write(jtfname.getText()+":"+jtfmsg.getText());
+				bw.newLine();
+				bw.flush();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				System.out.println("操作异常");
+			}
+			
+		
+		
+	}
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		new ClientSocket();
+		
+		try {
+			System.out.println("尝试与服务器进行连接");
+			client = new Socket("127.0.0.1",8888);
+			System.out.println("连接成功");
+			
+			OutputStream os = client.getOutputStream();
+			bw = new BufferedWriter(new OutputStreamWriter(os));
+			InputStream is = client.getInputStream();
+			br = new BufferedReader(new InputStreamReader(is));
+			while(true)
+			{
+				jta.append(br.readLine()+"\n");
+			}
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			System.out.println("域名异常");
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("操作异常");
+		}
+		finally{
+			try {
+				if(client!=null)
+					client.close();
+				if(bw!=null)
+					bw.close();
+				if(br!=null)
+					br.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+
+
+	
+
+}
