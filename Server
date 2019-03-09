@@ -1,0 +1,91 @@
+package test;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+
+public class Server extends Thread{
+	
+	Socket socket = null;
+	BufferedReader br = null;
+	BufferedWriter bw = null;
+	static ArrayList alist = new ArrayList();
+	
+	public Server(Socket socket)
+	{
+		this.socket = socket;
+		
+		try {
+			InputStream is = socket.getInputStream();
+			br = new BufferedReader(new InputStreamReader(is));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("操作异常");
+		}
+	}
+	public void run()
+	{
+		try {
+			String len = "";
+			while((len=br.readLine())!=null)
+			{
+				send(len);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	private synchronized void send(String s)
+	{
+		for(int i=0;i<alist.size();i++)
+		{
+			try {
+				socket = (Socket)alist.get(i);
+				OutputStream os = socket.getOutputStream();
+				bw = new BufferedWriter(new OutputStreamWriter(os));
+				bw.write(s);
+				bw.newLine();
+				bw.flush();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("IO操作异常");
+			}
+		}
+	}
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		ServerSocket server = null;
+		Socket socket = null;
+		
+		try {
+			server = new ServerSocket(8888);
+			System.out.println("成功创建套接字");
+			System.out.println("处于等待客户及连接状态");
+			while(true)
+			{
+				socket = server.accept();
+				System.out.println("和客户及建立连接");
+				alist.add(socket);
+				new Server(socket).start();
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally
+		{
+			try {
+				if(server!=null)
+					server.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+
+}
+
